@@ -1,0 +1,20 @@
+k8s RBAC fundamentals
+======================
+
+Subjects - Users or processes that require access to the k8s APIs.
+API Groups - k8s API groups like CRDs, extensions, apps, batch, etc.
+Resources - k8s objects like POds, Namespaces, Services, Configmaps, etc.
+Verbs - List of actions that can be executed on resources.
+
+Roles and Role bindings are namespace level resources.
+Cluster roles and Cluster role bindings are cluster level resources.
+
+AKS_CLUSTER_ID=$(az aks show --resource-group hemiaks1 --name hemiaks --query id -o tsv)
+
+DEV_AKS_GROUP_ID=$(az ad group create --display-name devaksteam --mail-nickname devaksteam --query objectId -o tsv)
+
+az role assignment create \
+  --assignee 71be1339-ba5e-48db-856c-88c9e5b8ef1f \
+  --role "Azure Kubernetes Service Cluster User Role" \
+  --scope /subscriptions/fbdcaeb0-e2d1-4105-9913-1ae0ec441907/resourcegroups/hemiaks1/providers/Microsoft.ContainerService/managedClusters/hemiaks
+

@@ -1,0 +1,35 @@
+# Ingress annotations - Loadbalancer settings
+# Ingress spec - Ingressclass controller specification, Ingress routing rules, and default backend.
+# If we have multiple backends with healthcheck endpoints, then the health check endpoint should be defined in the service definition.
+# Do NOT use default backend in the Ingress definition until and unless absolutely necessary. If using it is necessary, then the endpoint can be reached ONLY by providing the full URI path.
+# Define the root context at the end of the rules ALWAYS. The paths are always sequentially evaluated, and the first best match is always chosen by the ingress controller.
+
+# Ingress Architecture
+=======================
+
+1. Default backend port exposes container port.
+2. Container port is accessible over a node port.
+3. Ingress resource exposes the nodeport via the chosen controller.
+
+# Ingress SSL
+===============
+
+1. Register a domain (A valid DNS name is required for SSL).
+2. Create SSL certificate for this DNS in the AWS Certificate Manager.
+3. Update SSL annotations in Ingress.
+    - listen-ports
+    - certificate-arn
+    - SSL
+    - ssl-redirect
+4. Deploy!
+
+Question: How about which certificate to use and secrets required?
+
+# Validating domain via DNS validation
+
+1. Copy CNAME name and CNAME value from Domains in ACM.
+
+_334fbe67da1d4a1eb3c48e2fd512699f.dibudpersonal.com.
+_544643c4d8dc6373ba187ddf633a6fc5.ndlxkpgcgs.acm-validations.aws.
+
+

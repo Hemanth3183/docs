@@ -1,0 +1,68 @@
+node {
+  def image
+   //1//  stage ('checkout') {
+        checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '', url: 'https://github.com/harshalkathar/myfirstapp.git']]])      
+        }
+   
+ //2//   stage ('Build') {
+         def mvnHome = tool name: 'maven', type: 'maven'
+         def mvnCMD = '${mvnHome}/bin/mvn'
+         sh '${mvnCMD} clean package'
+        } 
+       
+   //3// stage ('Docker Build') {
+         
+            docker.build('springboot')
+        }
+ //4// stage ('Docker push')
+    docker.withRegistry('https://142825409430..dkr.ecr.ap-southeast-1.amazonaws.com', 'ecr:ap-southeast-1:hemiacr') {
+    docker.image('springboot').push('latest')
+        }
+  
+ //5// stage ('K8S Deploy'){
+                    sh 'kubectl apply -f spring-boot.yaml'
+      } 
+       }
+
+
+
+
+
+pipeline {
+    agent any
+    options {
+        skipStagesAfterUnstable()
+    }
+    stages {
+         stage('Clone repository') { 
+            steps { 
+                script{
+                checkout scm
+                }
+            }
+        }
+
+        stage('Build') { 
+            steps { 
+                script{
+                 app = docker.build("underwater")
+                }
+            }
+        }
+        stage('Test'){
+            steps {
+                 echo 'Empty'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                script{
+                        docker.withRegistry('https://142825409430..dkr.ecr.ap-southeast-1.amazonaws.com', 'ecr:ap-southeast-1:hemiacr') {
+                    app.push("${env.BUILD_NUMBER}")
+                    app.push("latest")
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: php-frontend
+  namespace: php-guestbook
+spec:
+  selector:
+    matchLabels:
+      app: guestbook
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        app: guestbook
+        tier: frontend
+    spec:
+      containers:
+        - name: php-frontend
+          image: gcr.io/google_samples/gb-frontend:v5
+          env:
+            - name: GET_HOSTS_FROM
+              value: "dns"
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: php-frontend-service
+  namespace: php-guestbook
+spec:
+  selector:
+    app: guestbook
+    tier: frontend
+  ports:
+    - port: 80
+  type: LoadBalancer

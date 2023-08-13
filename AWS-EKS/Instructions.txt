@@ -1,0 +1,202 @@
+# Kubernetes control plane - kube-apiserver, etcd, controlling, scheduling.
+# Worker nodes and node groups - Group of EC2 instances where we run our applications.
+# Fargate profiles - Serverless nodes on which we can run our application workloads. Note that Fargate workloads run only in the private subnets.
+# VPC - Secure networking to run production grade clusters.
+
+EKS Control Plane - Fully-managed by AWS, Not shared across clusters or accounts, At least 2 API nodes, and 3 etcd nodes across AZs', Detects and replaces unhealthy control plane nodes.
+
+Fargate profiles - On-demand, right-sized capacity, No manual provisioning required, AWS native Fargate controllers are used to control/schedule pods on Fargate profile.
+
+# Using eksctl to create a EKS cluster.
+=======================================
+
+eksctl create cluster --name=hemieks1 --region=ap-southeast-1 --zones=ap-southeast-1a,ap-southeast-1b --without-nodegroup
+
+# Enable CloudWatch logging - eksctl utils update-cluster-logging --enable-types=all --region=ap-southeast-1 --cluster=hemieks1
+
+# Enable Kubernetes service accounts IAM authorizations - eksctl utils associate-iam-oidc-provider --region=ap-southeast-1 --clus#ter=hemieks1 --approve
+
+# Create EC2 key pair
+
+# Increase the number of pods per node.
+
+kubectl describe daemonset aws-node --namespace kube-system | grep Image | cut -d "/" -f 2
+kubectl set env daemonset aws-node -n kube-system ENABLE_PREFIX_DELEGATION=true
+kubectl set env ds aws-node -n kube-system WARM_PREFIX_TARGET=1
+kubectl set env ds aws-node -n kube-system WARM_IP_TARGET=1
+kubectl set env ds aws-node -n kube-system MINIMUM_IP_TARGET=1
+
+# Create the nodegroup
+
+eksctl create nodegroup --cluster=hemieks --region=ap-southeast-1 --name=hemieks-ng-0 --node-type=t3.small --nodes=2 --nodes-min=2 --nodes-max=2 --node-volume-size=20 --ssh-access --ssh-public-key=hemikp --managed --asg-access --external-dns-access --full-ecr-access --appmesh-access --alb-ingress-access --max-pods-per-node 110
+
+# Determine whether an IAM OIDC provider with your cluster's ID is already in your account.
+
+aws iam list-open-id-connect-providers
+
+# Create a service account
+
+cat >my-service-account.yaml <<EOF
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: hemi-svc-user
+  namespace: default
+EOF
+kubectl apply -f my-service-account.yaml
+
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Federated": "arn:aws:iam::142825409430:oidc-provider/oidc.eks.ap-southeast-1.amazonaws.com/id/59F42C29795E1C796211ECE7729446F6"
+            },
+            "Action": "sts:AssumeRoleWithWebIdentity",
+            "Condition": {
+                "StringEquals": {
+                    "oidc.eks.ap-southeast-1.amazonaws.com/id/59F42C29795E1C796211ECE7729446F6:aud": "sts.amazonaws.com",
+                    "oidc.eks.ap-southeast-1.amazonaws.com/id/59F42C29795E1C796211ECE7729446F6:sub": "system:serviceaccount:kube-system:ebs-csi-controller-sa"
+                }
+            }
+        }
+    ]
+}
+
+
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Federated": "arn:aws:iam::142825409430:oidc-provider/oidc.eks.ap-southeast-1.amazonaws.com/id/59F42C29795E1C796211ECE7729446F6"
+            },
+            "Action": "sts:AssumeRoleWithWebIdentity",
+            "Condition": {
+                "StringEquals": {
+                    "oidc.eks.ap-southeast-1.amazonaws.com/id/59F42C29795E1C796211ECE7729446F6:sub": "system:serviceaccount:kube-system:efs-csi-controller-sa"
+                }
+            }
+        }
+    ]
+}
+
+helm repo add aws-efs-csi-driver https://kubernetes-sigs.github.io/aws-efs-csi-driver/
+
+helm upgrade -i aws-efs-csi-driver aws-efs-csi-driver/aws-efs-csi-driver \
+    --namespace kube-system \
+    --set image.repository=602401143452.dkr.ecr.ap-southeast-1.amazonaws.com/eks/aws-efs-csi-driver \
+    --set controller.serviceAccount.create=false \
+    --set controller.serviceAccount.name=efs-csi-controller-sa
+
+# Create the IAM role
+
+aws iam create-role --role-name=hemi-ebs-eks-role --assume-role-policy-document=file://"aws-ebs-csi-driver-trust-policy.json"
+
+# Attach the required role with the policy.
+
+aws iam attach-role-policy --policy-arn <ARN> --role-name hemi-ebs-eks-role
+
+# Assign the EBS CSI policy to the role from the management console.
+
+# Assign the role to the ebs-controller-csi-sa service account.
+
+kubectl annotate serviceaccount ebs-csi-controller-sa -n kube-system eks.amazonaws.com/role-arn=arn:aws:iam::142825409430:role/hemi-ebs-policy
+kubectl annotate serviceaccount efs-csi-controller-sa -n kube-system eks.amazonaws.com/role-arn=arn:aws:iam::142825409430:role/hemi-efs-role
+
+# Restart the CSI add-on deployment
+
+kubectl rollout restart deployment ebs-csi-controller -n kube-system
+
+# Troubleshooting
+
+kubectl logs deployment/ebs-csi-controller -n kube-system -c csi-provisioner
+
+error syncing claim "fd81e1bb-712b-472e-84c7-0eb90e625056": failed to provision volume with StorageClass "encrypted-io1": rpc error: code = DeadlineExceeded desc = context deadline exceeded
+
+# Install the metrics-Serverless
+
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
+# Install ASCP
+
+helm repo add secrets-store-csi-driver https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
+helm repo add aws-secrets-manager https://aws.github.io/secrets-store-csi-driver-provider-aws
+
+helm install -n kube-system csi-secrets-store secrets-store-csi-driver/secrets-store-csi-driver
+helm install -n kube-system secrets-provider-aws aws-secrets-manager/secrets-store-csi-driver-provider-aws
+
+aws --region ap-southeast-1 secretsmanager \
+  create-secret --name eksworkshop \
+  --secret-string '{"username":"foo", "password":"super-sekret"}'
+
+arn:aws:secretsmanager:ap-southeast-1:142825409430:secret:DBSecret_eksworkshop-UAzo3y
+
+kubectl annotate serviceaccount secrets-store-csi-driver eks.amazonaws.com/role-arn=arn:aws:iam::142825409430:role/hemi-eks-secrets-read
+
+# Create IAM trust policy and role and assign it to the service account.
+
+POLICY_ARN=$(aws --region ap-southeast-1 --query Policy.Arn --output text iam create-policy --policy-name hemi-store-iam-policy --policy-document '{
+    "Version": "2012-10-17",
+    "Statement": [ {
+        "Effect": "Allow",
+        "Action": ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret"],
+        "Resource": ["arn:aws:secretsmanager:ap-southeast-1:142825409430:secret:eksworkshop-kr7ca5"]
+    } ]
+}')
+
+eksctl create iamserviceaccount --name hemi-eks-secrets-reader --region ap-southeast-1 --cluster hemieks --attach-policy-arn arn:aws:iam::142825409430:policy/hemi-store-iam-policy --
+approve
+
+# Jenkins setup
+===============
+
+helm install jenkins stable/jenkins --set rbac.create=true,master.servicePort=80,master.serviceType=LoadBalancer,persistence.existingClaim=efs-claim
+
+printf $(kubectl get secret jenkins -o jsonpath="{.data.jenkins-admin-password}" | base64 --decode);echo
+zTwpT2oMfk
+
+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
+
+# MYSQL client
+
+kubectl run mysql-client --image=mysql:5.7 -it --rm --restart=Never -- /bin/bash
+
+mysql -h mysql-service -uroot -proot_password -e 'SHOW databases;'
+
+# Initialization containers - To fix dependencies between containers.
+
+Under spec.template.spec - specify initContainers k8s object.
+
+# Liveness probe - k8s controller runs this to check when to restart pods.
+# Readiness probe - k8s controller checks this to learn if container can accept traffic.
+# Startup probe - k8s controller uses this probe to understand if a container application has started. This probe disables liveness and readiness probes until successful. This is a workaround to delay liveness probes in slow starting containers.
+
+# Limit range - Apply resource default, min/max values per container in a namespace.
+
+# Resource Quotas - Limit the number of k8s objects that can be created in the namespace.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,56 @@
+# Create IAM policy
+
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "route53:ChangeResourceRecordSets"
+      ],
+      "Resource": [
+        "arn:aws:route53:::hostedzone/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "route53:ListHostedZones",
+        "route53:ListResourceRecordSets"
+      ],
+      "Resource": [
+        "*"
+      ]
+    }
+  ]
+}
+
+# Create SA and assign role using eksctl command.
+
+eksctl create iamserviceaccount \
+    --name external-dns \
+    --namespace default \
+    --cluster hemieks \
+    --attach-policy-arn arn:aws:iam::142825409430:policy/AllowExternalDNSUpdates \
+    --approve \
+    --override-existing-serviceaccounts
+
+# Create ALB SA as well.
+
+curl -O https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.4.4/docs/install/iam_policy.json
+
+# Create IAM Policy using policy downloaded 
+
+aws iam create-policy \
+    --policy-name AWSLoadBalancerControllerIAMPolicy \
+    --policy-document file://iam_policy.json
+
+# Create SA and assign role using eksctl command.
+
+eksctl create iamserviceaccount \
+    --name aws-load-balancer-controller \
+    --namespace kube-system \
+    --cluster hemieks \
+    --attach-policy-arn arn:aws:iam::142825409430:policy/AWSLoadBalancerControllerIAMPolicy \
+    --approve \
+    --override-existing-serviceaccounts

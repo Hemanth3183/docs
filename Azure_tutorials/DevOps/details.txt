@@ -1,0 +1,25 @@
+## ------------------------Deploying a multicontainer application to AKS. Storing the images in ACR. -------------------------------------##
+
+az aks update -n $AKS_CLUSTER_NAME -g $AKS_RESOURCE_GROUP --attach-acr $ACR_NAME # To authenticate the AKS MI user with ACR.
+
+az aks update -n hemiaks -g hemiaks --attach-acr hemiacr
+
+SQL Server address - hemisql.database.windows.net
+ACR - hemiacr.azurecr.io
+AKS - hemiaks
+SQL Database - hemisql 
+ ## --------------------------------------------------------------------------------------------------------------------------------------##
+
+
+ ## ---------------------------- Feature Flag Management with LaunchDarkly and Azure Devops -----------------------------------------------##
+
+LaunchDarkly is a continuous delivery platform that provides feature flags as a service and allows developers to iterate quickly and safely. LaunchDarkly gives you the power to separate feature rollout from code deployment and manage feature flags at scale. With the integration of LaunchDarkly with Azure DevOps services allow developers to release confidently with less risk. You can tie feature flag roll-outs to Azure DevOps work items to get complete control over who sees what when.
+
+1. Create flag in LD.
+2. Copy the SDK key. # To integrate LD into application. sdk-e41acb70-804a-4da7-afa4-4291a29d68b4
+3. Generate an access token to authenticate the call to LaunchDarkly from Azure DevOps. api-a41ff2ca-93c6-4a18-b551-13be6c0ec801
+4. Generate a PAT in AzureDevOps. l4teynxhcawvok6s5iflupa5mslax4cav5q2jfj3pzusqzhv63rq
+5. Provide your LaunchDarkly details in the release pipeline variables section.
+
+
+ ## --------------------------------------------------------------------------------------------------------------------------------------##

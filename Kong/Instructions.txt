@@ -1,0 +1,64 @@
+Create namespace
+=================
+
+kubectl create namespace kong
+
+Create secret in the namespace
+================================
+
+kubectl create secret generic kong-config-secret -n kong \
+    --from-literal=portal_session_conf='{"storage":"kong","secret":"super_secret_salt_string","cookie_name":"portal_session","cookie_samesite":"off","cookie_secure":false}' \
+    --from-literal=admin_gui_session_conf='{"storage":"kong","secret":"super_secret_salt_string","cookie_name":"admin_session","cookie_samesite":"off","cookie_secure":false}' \
+    --from-literal=pg_host="enterprise-postgresql.kong.svc.cluster.local" \
+    --from-literal=kong_admin_password=kong \
+    --from-literal=password=kong
+
+Name:         kong-config-secret
+Namespace:    kong
+Labels:       <none>
+Annotations:  <none>
+
+Type:  Opaque
+
+Data
+====
+portal_session_conf:     131 bytes
+admin_gui_session_conf:  130 bytes
+kong_admin_password:     4 bytes
+password:                4 bytes
+pg_host:                 44 bytes
+
+Create a license secret
+========================
+
+kubectl create secret generic kong-enterprise-license --from-literal=license="'{}'" -n kong --dry-run=client -o yaml | kubectl apply -f -
+
+# Install certmanager
+
+helm repo add jetstack https://charts.jetstack.io ; helm repo update
+helm upgrade --install cert-manager jetstack/cert-manager --set installCRDs=true --namespace cert-manager --create-namespace
+
+# Create a self-signed certificate
+
+kubectl apply -f root.yaml -n kong
+issuer.cert-manager.io/quickstart-kong-selfsigned-issuer-root created
+kubectl apply -f issuer.yaml -n kong
+issuer.cert-manager.io/quickstart-kong-selfsigned-issuer created
+kubectl apply -f certiticate.yaml -n kong
+certificate.cert-manager.io/quickstart-kong-selfsigned-issuer-ca created
+
+kubectl get certificate -n kong
+NAME                                   READY   SECRET                                 AGE
+quickstart-kong-selfsigned-issuer-ca   True    quickstart-kong-selfsigned-issuer-ca   13s
+
+kubectl get issuer -n kong
+NAME                                     READY   AGE
+quickstart-kong-selfsigned-issuer        True    41s
+quickstart-kong-selfsigned-issuer-root   True    47s
+
+# Install kong gateway
+
+helm repo add kong https://charts.konghq.com ; helm repo update
+helm install quickstart kong/kong --namespace kong --values ~/quickstart.yaml
+helm upgrade quickstart kong/kong --namespace kong --values ~/quickstart.yaml
+

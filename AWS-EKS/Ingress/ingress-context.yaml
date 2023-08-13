@@ -1,0 +1,41 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-context
+  labels:
+    name: ingress-context
+  annotations:
+    alb.ingress.kubernetes.io/load-balancer-name: "nginx-context"
+    alb.ingress.kubernetes.io/scheme: "internet-facing"
+    alb.ingress.kubernetes.io/subnets: "subnet-07d5d57234e36f058, subnet-0bf32766ffcbec905, subnet-05a0958f88f3b53cc"
+spec:
+  ingressClassName: albc-ingress-class
+  rules:
+    - http:
+        paths:
+          - pathType: Prefix
+            path: "/app1"
+            backend:
+              service:
+                name: nginx1
+                port:
+                  number: 80
+          - pathType: Prefix
+            path: "/app2"
+            backend:
+              service:
+                name: nginx2
+                port:
+                  number: 80
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: nginx3
+                port:
+                  number: 80
+  defaultBackend:
+    service:
+      name: nginx3
+      port:
+        number: 80

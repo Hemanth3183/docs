@@ -1,0 +1,10 @@
+Add a nodepool to a different subnet than the default one.
+
+az network vnet subnet list --resource-group hemiaks --vnet-name hemiaks-vnet
+
+az aks nodepool add \
+    --resource-group hemiaks \
+    --cluster-name hemiaks \
+    --name mynodepool \
+    --node-count 1 \
+    --vnet-subnet-id /subscriptions/fbdcaeb0-e2d1-4105-9913-1ae0ec441907/resourceGroups/hemiaks/providers/Microsoft.Network/virtualNetworks/hemiaks-vnet/subnets/aks-subnet

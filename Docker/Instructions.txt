@@ -1,0 +1,17 @@
+# Download the image.
+docker pull <image>
+
+#Test the image.
+docker run -it --rm -p <local_port>:<container_port> <image>
+
+#Tag the image.
+docker tag <src_image>:<tag> <local_image>:<tag>
+
+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
+
+Root of the repo is: $(Build.SourcesDirectory)
+
+kubectl config view --minify -o jsonpath={.clusters[0].cluster.server}
+kubectl get serviceAccounts default -n default -o=jsonpath={.secrets[*].name}
+kubectl get secret default-token-gtrgk -n default -o json
+kubectl create clusterrolebinding azure-devops --clusterrole=cluster-admin --serviceaccount=default:default

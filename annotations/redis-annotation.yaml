@@ -1,0 +1,19 @@
+# Annotations work like labels but they are not used to identify, group or collect pods. They are simply some non-identifiable labels.
+# Build, release, or image information like timestamps, release IDs, git branch, PR numbers, image hashes, and registry address.
+# Annotations are key/value pairs. Valid annotation keys have two segments: an optional prefix and name, separated by a slash (/).
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp-annotation
+  labels:
+    name: myapp-annotation
+  annotations:
+    hemiaks/author: hemanth
+spec:
+  containers:
+    - name: myapp-annotation
+      image: redis
+      resources:
+        limits:
+          memory: "128Mi"
+          cpu: "500m"

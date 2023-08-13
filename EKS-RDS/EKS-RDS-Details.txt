@@ -1,0 +1,10 @@
+# Host RDS DB in a private subnet. Create a private subnet.
+# Create SG to assign to the RDS instance with traffic from only the EKS subnets/VPC.
+# Create subnet group (2 AZs) in RDS.
+# usermgmtdb.cpyzqnqjvbwe.ap-southeast-1.rds.amazonaws.com --> Connection details.
+# Create service object with type externalName.
+# Connect to the RDS instance from EKS cluster.
+
+kubectl run -it --rm mysql-client --image=mysql:8.0.28 --restart=Never -- mysql -h usermgmtdb.cpyzqnqjvbwe.ap-southeast-1.rds.amazonaws.com -u dbadmin -pdbpassword11
+
+

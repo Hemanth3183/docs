@@ -1,0 +1,2 @@
+Permissions at namespace level where possible. Implies we should use RoleBindings, and not ClusterRoleBindings.
+Avoid providing wildcard permissions.

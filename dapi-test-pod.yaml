@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dapi-test-pod
+  labels:
+    name: dapi-test-pod
+spec:
+  containers:
+    - name: dapi-test-pod
+      image: registry.k8s.io/busybox
+      command: ["/bin/sh", "ls /etc/config"]
+      volumeMounts:
+        - name: config
+          mountPath: /etc/config
+        - name: properties
+          mountPath: /etc/properties
+  volumes:
+    - name: config
+      configMap:
+        name: special-config
+    - name: properties
+      configMap:
+        name: special-properties
+        items:
+          - key: SPECIAL_VERY
+            path: keys

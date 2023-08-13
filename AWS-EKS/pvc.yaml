@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    pv.kubernetes.io/bind-completed: "yes"
+    pv.kubernetes.io/bound-by-controller: "yes"
+    volume.beta.kubernetes.io/storage-provisioner: ebs.csi.aws.com
+    volume.kubernetes.io/selected-node: ip-172-31-83-139.ap-southeast-1.compute.internal
+    volume.kubernetes.io/storage-provisioner: ebs.csi.aws.com
+  labels:
+    app.kubernetes.io/component: replica
+    app.kubernetes.io/instance: hemi-redis
+    app.kubernetes.io/name: redis
+  name: redis-data-hemi-redis-replicas-0
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 8Gi
+  storageClassName: gp2
+  volumeMode: Filesystem
+  volumeName: pvc-507f0e75-7ce4-46cc-a8ad-59762908e91d
+status:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 8Gi
+  phase: Bound

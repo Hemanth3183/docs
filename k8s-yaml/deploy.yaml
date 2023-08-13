@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp-deploy
+  labels:
+    name: myapp-deploy
+    tier: local-desktop
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: myapp-deploy
+  template:
+    metadata:
+      labels:
+        name: myapp-deploy
+    spec:
+      containers:
+        - name: redis
+          image: redis
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 6379

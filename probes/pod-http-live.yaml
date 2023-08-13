@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp-live-http
+  labels:
+    name: myapp-live-http
+spec:
+  containers:
+    - name: myapp-live-http
+      image: registry.k8s.io/liveness
+      args:
+        - /server
+      resources:
+        limits:
+          memory: "128Mi"
+          cpu: "500m"
+      livenessProbe: # Check - If fails, container will be restarted. Does not wait for Readiness check to succeed.
+        httpGet:
+          path: /healthz
+          port: 8080
+          httpHeaders:
+            - name: Custom-Header
+              value: Awesome
+        initialDelaySeconds: 3
+        periodSeconds: 3
+      readinessProbe: # Check - Application is ready to accept traffic. Runs for the entire duration of the pod's lifecycle.
+        httpGet:
+          path: /healthz
+          port: 8080
+          httpHeaders:
+            - name: Custom-Header
+              value: Awesome
+        initialDelaySeconds: 3
+        periodSeconds: 3
+      startupProbe: # Check - If application has started and can run liveness and readiness checks.
+        httpGet:
+          path: /healthz
+        initialDelaySeconds: 2
+        failureThreshold: 10
+        periodSeconds: 10

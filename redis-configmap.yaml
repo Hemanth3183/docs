@@ -1,0 +1,22 @@
+# Configmaps are used to store configuration data of the underlying pods/containers. This decouples the pod from its runtime dependencies.
+# Secret information should not be stored in configmaps.
+# data is for UTF-8 data, and binary is for non-UTF-8 data.
+# Configmaps can be created from directories, files and literals.
+# Normal data should be mounted as volumes.
+# Environment variables should be mounted as env files.
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-config
+data:
+  redis-config: |-
+    enemies=aliens
+    lives=3
+    enemies.cheat=true
+    secret.code.lives=30
+  redis-properties: |-
+    friends=animals
+    lives=10
+    friends.cheat=false
+    secret.code.lives=100

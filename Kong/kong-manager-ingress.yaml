@@ -1,0 +1,177 @@
+apiVersion: v1
+items:
+  - apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      annotations:
+        konghq.com/https-redirect-status-code: "301"
+        konghq.com/protocols: https
+        konghq.com/strip-path: "true"
+        kubernetes.io/ingress.class: default
+        meta.helm.sh/release-name: quickstart
+        meta.helm.sh/release-namespace: kong
+        nginx.ingress.kubernetes.io/app-root: /
+        nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+        nginx.ingress.kubernetes.io/permanent-redirect-code: "301"
+      generation: 2
+      labels:
+        app.kubernetes.io/instance: quickstart
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kong
+        app.kubernetes.io/version: "3.1"
+        helm.sh/chart: kong-2.14.0
+        konghq.com/component: quickstart
+      name: quickstart-kong-admin
+      namespace: kong
+    spec:
+      rules:
+        - host: kong.dibudpersonal.com
+          http:
+            paths:
+              - backend:
+                  service:
+                    name: quickstart-kong-admin
+                    port:
+                      number: 8444
+                path: /api
+                pathType: ImplementationSpecific
+      tls:
+        - hosts:
+            - kong.dibudpersonal.com
+          secretName: quickstart-kong-admin-cert
+    status:
+      loadBalancer:
+        ingress:
+          - ip: 20.24.129.155
+  - apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      annotations:
+        konghq.com/https-redirect-status-code: "301"
+        kubernetes.io/ingress.class: default
+        meta.helm.sh/release-name: quickstart
+        meta.helm.sh/release-namespace: kong
+        nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+      creationTimestamp: "2023-01-16T15:23:42Z"
+      generation: 2
+      labels:
+        app.kubernetes.io/instance: quickstart
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kong
+        app.kubernetes.io/version: "3.1"
+        helm.sh/chart: kong-2.14.0
+        konghq.com/component: quickstart
+      name: quickstart-kong-manager
+      namespace: kong
+      resourceVersion: "124048"
+      uid: f81cb0a5-8227-496a-a405-2e906844909f
+    spec:
+      rules:
+        - host: kong.dibudpersonal.com
+          http:
+            paths:
+              - backend:
+                  service:
+                    name: quickstart-kong-manager
+                    port:
+                      number: 8445
+                path: /
+                pathType: ImplementationSpecific
+      tls:
+        - hosts:
+            - kong.dibudpersonal.com
+          secretName: quickstart-kong-admin-cert
+    status:
+      loadBalancer:
+        ingress:
+          - ip: 20.24.129.155
+  - apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      annotations:
+        konghq.com/https-redirect-status-code: "301"
+        konghq.com/protocols: https
+        konghq.com/strip-path: "false"
+        kubernetes.io/ingress.class: default
+        meta.helm.sh/release-name: quickstart
+        meta.helm.sh/release-namespace: kong
+      creationTimestamp: "2023-01-16T15:23:42Z"
+      generation: 2
+      labels:
+        app.kubernetes.io/instance: quickstart
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kong
+        app.kubernetes.io/version: "3.1"
+        helm.sh/chart: kong-2.14.0
+        konghq.com/component: quickstart
+      name: quickstart-kong-portal
+      namespace: kong
+      resourceVersion: "124068"
+      uid: d6d3dc34-398f-4917-8c74-a5c8f0036005
+    spec:
+      rules:
+        - host: developer.dibudpersonal.com
+          http:
+            paths:
+              - backend:
+                  service:
+                    name: quickstart-kong-portal
+                    port:
+                      number: 8446
+                path: /
+                pathType: ImplementationSpecific
+      tls:
+        - hosts:
+            - developer.dibudpersonal.com
+          secretName: quickstart-kong-portal-cert
+    status:
+      loadBalancer:
+        ingress:
+          - ip: 20.24.129.155
+  - apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      annotations:
+        konghq.com/https-redirect-status-code: "301"
+        konghq.com/protocols: https
+        konghq.com/strip-path: "true"
+        kubernetes.io/ingress.class: default
+        meta.helm.sh/release-name: quickstart
+        meta.helm.sh/release-namespace: kong
+        nginx.ingress.kubernetes.io/app-root: /
+      creationTimestamp: "2023-01-16T15:23:42Z"
+      generation: 2
+      labels:
+        app.kubernetes.io/instance: quickstart
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kong
+        app.kubernetes.io/version: "3.1"
+        helm.sh/chart: kong-2.14.0
+        konghq.com/component: quickstart
+      name: quickstart-kong-portalapi
+      namespace: kong
+      resourceVersion: "124065"
+      uid: 4df181d1-c1f8-4ccf-b832-354539cbc772
+    spec:
+      rules:
+        - host: developer.dibudpersonal.com
+          http:
+            paths:
+              - backend:
+                  service:
+                    name: quickstart-kong-portalapi
+                    port:
+                      number: 8447
+                path: /api
+                pathType: ImplementationSpecific
+      tls:
+        - hosts:
+            - developer.dibudpersonal.com
+          secretName: quickstart-kong-portal-cert
+    status:
+      loadBalancer:
+        ingress:
+          - ip: 20.24.129.155
+kind: List
+metadata:
+  resourceVersion: ""

@@ -1,0 +1,2 @@
+# Kubernetes Master Node - kube-apiserver, etcd, kube-scheduler, kube-controller, Cloud Controller Manager, containerd
+# Kubernetes Worker Node - kube-proxy, kubelet

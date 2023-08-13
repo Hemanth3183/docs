@@ -1,0 +1,3 @@
+# Liveness - When to restart a container.
+# Readiness - After the application has started inside the container and it is ready to accept traffic.
+# Startup - When the application inside the container has started. It disables liveness and readiness probes until it succeeds.
